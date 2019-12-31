@@ -1,0 +1,71 @@
+---
+# tasks file for opentelekomcloud_infra.web_proxy_nginx
+- name: "Include {{ ansible_distribution }} variables"
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+
+- name: Install required packages
+  become: true
+  package:
+    state: present
+    name: "{{ item }}"
+  with_items: "{{ packages }}"
+  register: task_result
+  until: task_result is success
+  retries: 5
+
+- name: Allow ports in firewall
+  become: true
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  loop:
+    - http
+    - https
+  notify:
+    - restart firewalld
+
+- name: Create Nginx SSL certificates folder
+  become: true
+  file:
+    path: /etc/ssl/nginx
+    state: directory
+    owner: "{{ nginx_os_user }}"
+    group: "{{ nginx_os_group }}"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Generate Diffie-Hellman parameters with the default size (4096 bits)
+  become: true
+  openssl_dhparam:
+    path: /etc/ssl/nginx/dhparams.pem
+    #    size: 2048
+
+- name: Write nginx config
+  become: true
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner | default(nginx_os_user) }}"
+    group: "{{ item.group | default(nginx_os_group) }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop:
+    - {src: "nginx.conf.j2", dest: "/etc/nginx/nginx.conf" }
+  notify:
+    - restart nginx
+
+- name: Provision vhosts
+  include_tasks: "vhost.yml"
+  when: web_proxy_nginx_vhosts is defined and web_proxy_nginx_vhosts
+
+- name: Create webroot dir
+  become: true
+  file:
+    path: "{{ web_proxy_nginx_certbot_webroot }}"
+    state: "directory"
+    owner: "{{ nginx_os_user }}"
+    group: "{{ nginx_os_group }}"

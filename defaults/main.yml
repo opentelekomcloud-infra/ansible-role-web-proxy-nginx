@@ -1,0 +1,35 @@
+---
+# defaults file for opentelekomcloud_infra.web_proxy_nginx
+#
+web_proxy_nginx_certbot_webroot: "/var/www/html/"
+web_proxy_nginx_enable_https_redirect: true
+web_proxy_nginx_enable_ssl: true
+web_proxy_nginx_ssl_cert_name: web_proxy_nginx.cert
+web_proxy_nginx_ssl_cert_location: "/etc/ssl/certs/{{ web_proxy_nginx_ssl_cert_name }}"
+web_proxy_nginx_ssl_cert_content:
+web_proxy_nginx_ssl_key_name: web_proxy_nginx.key
+web_proxy_nginx_ssl_key_location: "/etc/ssl/certs/{{ web_proxy_nginx_ssl_key_name }}"
+web_proxy_nginx_ssl_key_content:
+web_proxy_nginx_vhosts: []
+
+packages: []
+nginx_os_user: nginx
+nginx_os_group: nginx
+
+# Infra defaults
+web_proxy_nginx_host_state: "present"
+web_proxy_nginx_host_image: "Standard_Fedora_30_latest"
+web_proxy_nginx_host_flavor: "s2.large.2"
+web_proxy_nginx_host_server_name: "{{ ('web_proxy_nginx.' + domain_name) | default('web_proxy_nginx') }}"
+web_proxy_nginx_host_availability_zone: "eu-de-01"
+web_proxy_nginx_host_root_volume_size: 12
+# Auto attach FIP
+web_proxy_nginx_host_auto_ip: false
+
+web_proxy_nginx_host_metadata:
+  host-type: web_proxy_nginx
+web_proxy_nginx_host_data_volume_metadata:
+  host-type: web_proxy_nginx
+
+web_proxy_nginx_server_group_name: web_proxy_nginx
+

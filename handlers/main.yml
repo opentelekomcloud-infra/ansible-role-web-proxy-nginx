@@ -1,0 +1,17 @@
+---
+# handlers file for opentelekomcloud_infra.web_proxy_nginx
+#
+- name: restart nginx
+  become: true
+  service:
+    name: nginx
+    state: restarted
+    enabled: true
+    daemon_reload: true
+
+- name: restart firewalld
+  become: true
+  service:
+    name: firewalld
+    state: restarted
+    enabled: true

@@ -1,0 +1,24 @@
+---
+- name: Deploy vhost from template
+  become: true
+  template:
+    src: vhost.conf.j2
+    dest: "/etc/nginx/conf.d/{{ web_proxy_nginx_vhost_server_name }}"
+    owner: "{{ nginx_os_user }}"
+    group: "{{ nginx_os_group }}"
+  when: web_proxy_nginx_vhosts is not defined
+  notify:
+    - restart nginx
+
+
+- name: Deploy vhost from inventory
+  become: true
+  copy:
+    dest: "/etc/nginx/conf.d/{{ item.name }}.conf"
+    content: "{{ item.content }}"
+    owner: "{{ nginx_os_user }}"
+    group: "{{ nginx_os_group }}"
+  loop: "{{ web_proxy_nginx_vhosts | list }}"
+  when: web_proxy_nginx_vhosts is defined
+  notify:
+    - restart nginx

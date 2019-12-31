@@ -1,0 +1,26 @@
+{% if web_proxy_nginx_vhost_backend is defined %}
+upstream {{ web_proxy_nginx_vhost_backend }} {
+{% for srv in web_proxy_nginx_vhost_backend_servers %}
+    server {{ srv }};
+{% endfor %}
+}
+{% endif %}
+
+server {
+    listen   443 ssl;
+    server_name {{ web_proxy_nginx_vhost_server_name }};
+
+    ssl_certificate    {{ web_proxy_nginx_vhost_ssl_cert }};
+    ssl_certificate_key   {{ web_proxy_nginx_vhost_ssl_key }};
+    ssl_dhparam /etc/ssl/nginx/dhparam.pem;
+
+    access_log /var/log/nginx/{{ web_proxy_nginx_vhost_server_name | first }}.access.log;
+    error_log /var/log/nginx/{{ web_proxy_nginx_vhost_server_name | first }.error.log;
+
+    location / {
+        proxy_pass  http://{{ web_proxy_nginx_vhost_backend }};
+        proxy_set_header    Host                $http_host;
+        proxy_set_header    X-Real-IP           $remote_addr;
+        proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+    }
+}

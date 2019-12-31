@@ -1,0 +1,6 @@
+---
+
+packages:
+  - nginx
+  - firewalld
+  - python3-firewall

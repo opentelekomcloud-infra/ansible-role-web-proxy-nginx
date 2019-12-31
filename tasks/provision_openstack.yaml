@@ -1,0 +1,51 @@
+---
+
+- when: web_proxy_nginx_host_state != 'absent'
+  block:
+
+    - name: Create server group
+      os_server_group:
+        state: present
+        name: "{{ web_proxy_nginx_server_group_name }}"
+        policies:
+         - "anti-affinity"
+      register: server_group
+
+    - name: Create server {{ web_proxy_nginx_host_server_name }}
+      os_server:
+        state: "{{ web_proxy_nginx_host_state }}"
+        name: "{{ web_proxy_nginx_host_server_name }}"
+        image: "{{ web_proxy_nginx_host_image }}"
+        flavor: "{{ web_proxy_nginx_host_flavor }}"
+        key_name: "{{ web_proxy_nginx_host_key_name }}"
+        boot_from_volume: true
+        auto_ip: "{{ web_proxy_nginx_host_auto_ip }}"
+        meta: "{{ web_proxy_nginx_host_metadata }}"
+        availability_zone: "{{ web_proxy_nginx_host_availability_zone }}"
+        security_groups: "{{ web_proxy_nginx_host_security_groups }}"
+        nics: "{{ web_proxy_nginx_host_network }}"
+        volume_size: "{{ web_proxy_nginx_host_root_volume_size }}"
+        scheduler_hints:
+          group: "{{ server_group.id }}"
+        userdata: |
+          #cloud-config
+          fqdn: {{ web_proxy_nginx_host_server_fqdn }}
+          packages:
+          growpart:
+          mode: auto
+          devices: ['/']
+          ignore_growroot_disabled: false
+      register: server
+
+- when: web_proxy_nginx_host_state == 'absent'
+  block:
+
+    - name: Delete host
+      os_server:
+        state: absent
+        name: "{{ web_proxy_nginx_host_server_name }}"
+
+    - name: Delete server group
+      os_server_group:
+        state: absent
+        name: "{{ web_proxy_nginx_server_group_name }}"
