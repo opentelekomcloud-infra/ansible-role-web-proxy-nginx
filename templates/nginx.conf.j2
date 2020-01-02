@@ -23,7 +23,9 @@ http {
     tcp_nopush          on;
     tcp_nodelay         on;
     keepalive_timeout   65;
-    types_hash_max_size 2048;
+    types_hash_max_size 4096;
+
+    server_tokens off;
 
     include             /etc/nginx/mime.types;
     default_type        application/octet-stream;
@@ -41,8 +43,6 @@ http {
 
         # Load configuration files for the default server block.
         include /etc/nginx/default.d/*.conf;
-
-        types_hash_max_size 4096;
 
 {% if web_proxy_nginx_certbot_webroot is defined and web_proxy_nginx_certbot_webroot|length > 0 %}
         location ~ /.well-known {
