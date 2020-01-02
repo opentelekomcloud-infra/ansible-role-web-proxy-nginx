@@ -69,3 +69,15 @@
     state: "directory"
     owner: "{{ nginx_os_user }}"
     group: "{{ nginx_os_group }}"
+
+#  setsebool -P httpd_can_network_relay 1
+#  setsebool -P httpd_can_network_connect 1
+- name: Set required SELinux vars
+  seboolean:
+    name: "{{ item }}"
+    state: yes
+    persistent: yes
+  loop:
+    - httpd_can_network_relay
+    -  httpd_can_network_connect
+
